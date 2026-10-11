@@ -1,9 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  /*
-   * Redirects first: www collapses to the apex so there is exactly one
-   * canonical host (matches the canonical/OG URLs in index.html).
-   */
   "redirects": [
     {
       "source": "/:path*",
@@ -14,21 +10,12 @@
   ],
   "headers": [
     {
-      /*
-       * Hashed build artifacts: fingerprinted by content, safe to cache for a
-       * year. A redeploy changes the hash, so no stale-asset risk.
-       */
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      /*
-       * Everything else (HTML shell, sitemap, manifest, icons): revalidate
-       * every time. The shell references hashed assets, so a fresh shell is a
-       * fresh site and a cached shell is never more than one deploy behind.
-       */
       "source": "/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
