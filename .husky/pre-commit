@@ -1,0 +1,4 @@
+# Pre-commit: lint and format only what is staged. Full typecheck/build/tests
+# stay in CI (`npm run verify`), where they belong — a commit hook that builds
+# the 3D bundle would take longer than the commit is worth.
+npx lint-staged

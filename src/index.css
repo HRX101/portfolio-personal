@@ -1,0 +1,554 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink-950: #04050d;
+  --color-ink-900: #07081a;
+  --color-ink-800: #0c0e1c;
+  --color-ink-700: #141730;
+  --color-ink-600: #1e2246;
+
+  --color-mist-100: #eef1ff;
+  --color-mist-200: #d5daf2;
+  --color-mist-300: #a9b1d4;
+  --color-mist-400: #7d85ad;
+
+  --color-neon-teal: #45f0e0;
+  --color-neon-violet: #a06bff;
+  --color-neon-magenta: #ff4f9a;
+  --color-neon-amber: #ffb35c;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /*
+   * WCAG 2.2 "Target Size (Minimum)" is 24 CSS px, but 24 is a floor for a
+   * stylus. 44 is the size that reliably survives a thumb on a moving bus, and it
+   * matches the figure platform accessibility guidance uses. Exposed as a token
+   * so the sizing is stated once and every control that opts in agrees.
+   */
+  --touch-target-min: 44px;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-ink-950);
+    color: var(--color-mist-100);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Lenis */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-neon-teal);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-neon-teal) 40%, transparent);
+    color: #fff;
+  }
+
+  #seo-boot {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.001ms !important;
+      transition-delay: 0s !important;
+    }
+  }
+}
+
+@layer components {
+  /**
+   * Performance prompt: shown when FPS is critically low on LOW quality.
+   * Offers to switch to the 2D lightweight view.
+   */
+  .perf-prompt {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    pointer-events: auto;
+    animation: perf-prompt-in 0.3s var(--ease-out-expo) both;
+  }
+
+  .perf-prompt-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: color-mix(in oklab, var(--color-ink-950) 95%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-amber) 50%, transparent);
+    border-radius: 1rem;
+    backdrop-filter: blur(16px) saturate(120%);
+    box-shadow:
+      0 18px 50px -24px rgb(0 0 0 / 0.9),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+    text-align: center;
+    min-width: 280px;
+    max-width: 90vw;
+  }
+
+  .perf-prompt-inner p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-mist-100);
+  }
+
+  .perf-prompt-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  @keyframes perf-prompt-in {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /**
+   * The station card: a dark glass plate with a hairline border and a soft accent
+   * bloom behind it. Kept opaque enough (94% of the darkest ink) that body copy
+   * clears WCAG AA against whatever the scene happens to be doing behind it —
+   * a fully transparent panel over a bright neon road drops mist-300 text well
+   * under 4.5:1.
+   *
+   * Deliberately NO backdrop-filter here. Blurring a 520px card over a live
+   * WebGL canvas forces the browser to re-blur the canvas every frame while
+   * scrolling — the single most expensive compositor operation on this page —
+   * for a frosted effect that is nearly invisible through a 94%-opaque plate.
+   */
+  .station-card {
+    position: relative;
+    background: color-mix(in oklab, var(--color-ink-950) 94%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 16%, transparent);
+    box-shadow:
+      0 18px 50px -24px rgb(0 0 0 / 0.9),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+  }
+
+  .station-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px -1px auto -1px;
+    height: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-neon-teal) 55%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* Accent bloom behind the card, in the top-left corner the heading sits in. */
+  .station-card::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: -20%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-neon-teal) 16%, transparent),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  /**
+   * Bullet-level entrance. Opacity and transform are left to a CSS transition so
+   * a card appearing staggers its contents without any per-frame JavaScript; the
+   * card's own fade is written imperatively instead, because that one has to
+   * track a continuous value.
+   */
+  .stagger-item {
+    transition:
+      opacity 0.45s var(--ease-out-expo),
+      transform 0.45s var(--ease-out-expo);
+    transition-delay: calc(var(--i, 0) * 45ms);
+  }
+
+  [data-active='true'] .stagger-item {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-active='false'] .stagger-item {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .nav-link {
+    color: var(--color-mist-400);
+  }
+
+  .nav-link:hover {
+    color: var(--color-mist-100);
+  }
+
+  .nav-link[data-active='true'] {
+    color: var(--color-ink-950);
+    background-color: var(--color-neon-teal);
+  }
+
+  .skill-tile {
+    color: var(--color-mist-300);
+    border-color: color-mix(in oklab, var(--color-neon-teal) 18%, transparent);
+    background-color: color-mix(in oklab, white 4%, transparent);
+    /* Three of the four longhand properties, so the pointer loop's `translate`
+       and Tailwind's hover colour can both own this element without fighting
+       over `transform`. See MicroInteractions for the full reasoning. */
+    transition:
+      color 0.2s ease-out,
+      border-color 0.2s ease-out,
+      background-color 0.2s ease-out,
+      translate 0.25s var(--ease-out-expo),
+      scale 0.25s var(--ease-out-expo),
+      opacity 0.25s ease-out;
+  }
+
+  .skill-tile:hover,
+  .skill-tile:focus-visible,
+  .skill-tile[data-active='true'] {
+    color: var(--color-ink-950);
+    border-color: var(--color-neon-teal);
+    background-color: var(--color-neon-teal);
+    scale: 1.06;
+  }
+
+  /*
+   * The ripple: when any tile in a row is hovered, the rest drift apart.
+   *
+   * Done with `:has()` rather than JavaScript. The alternative — a pointermove
+   * handler measuring every tile's distance to the cursor — is strictly more work
+   * to express a purely discrete state, and it would keep re-querying the row on
+   * every scroll because the tiles wrap onto new lines as the card resizes.
+   *
+   * The displacement alternates by DOM order, which makes a row of tiles fan out
+   * from the hovered one instead of shifting uniformly sideways.
+   */
+  [data-skill-row]:has(.skill-tile:hover) .skill-tile,
+  [data-skill-row]:has(.skill-tile:focus-visible) .skill-tile {
+    opacity: 0.55;
+  }
+
+  [data-skill-row]:has(.skill-tile:hover) .skill-tile:nth-child(odd),
+  [data-skill-row]:has(.skill-tile:focus-visible) .skill-tile:nth-child(odd) {
+    translate: 0 -2px;
+  }
+
+  [data-skill-row]:has(.skill-tile:hover) .skill-tile:nth-child(even),
+  [data-skill-row]:has(.skill-tile:focus-visible) .skill-tile:nth-child(even) {
+    translate: 0 2px;
+  }
+
+  /* The hovered tile keeps its own colour and rises above the fade. */
+  [data-skill-row] .skill-tile:hover,
+  [data-skill-row] .skill-tile:focus-visible {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Hit area is invisible; the ring only appears under the pointer or the
+     keyboard, so the map reads as a map until it is being used. */
+  .minimap-dot {
+    background-color: transparent;
+    transition: background-color 0.15s ease-out;
+  }
+
+  .minimap-dot:hover,
+  .minimap-dot:focus-visible {
+    background-color: color-mix(in oklab, var(--color-neon-teal) 32%, transparent);
+  }
+
+  /**
+   * The station moment: the dot for the station the reader is actually at gets a
+   * ring that breathes, and the label fades in.
+   *
+   * The pulse is a ring pseudo-element rather than a box-shadow so it can scale
+   * from the dot's own centre, and `animation-play-state` gates it on
+   * `data-active` — an animation on an inactive dot would still be running, just
+   * invisible, and there are six of them.
+   */
+  .minimap-dot[data-active='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--color-neon-teal);
+    animation: minimap-pulse 2.6s var(--ease-out-expo) infinite;
+    pointer-events: none;
+  }
+
+  @keyframes minimap-pulse {
+    0% {
+      opacity: 0.9;
+      scale: 0.5;
+    }
+    70%,
+    100% {
+      opacity: 0;
+      scale: 2.1;
+    }
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(
+      100deg,
+      var(--color-mist-100) 0%,
+      var(--color-neon-teal) 45%,
+      var(--color-neon-violet) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .panel {
+    background: color-mix(in oklab, var(--color-ink-800) 78%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 14%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .hairline {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-neon-teal) 55%, transparent),
+      transparent
+    );
+    background-size: 180% 100%;
+    background-position: 100% 0;
+  }
+
+  /**
+   * Heading underline sweep. The hairline draws itself in when its station
+   * becomes the active one.
+   *
+   * Driven by `[data-active]` on the section rather than by remounting the
+   * element: a key change would restart the animation but also throw away the
+   * node on every station change, which is a much heavier way to ask for the
+   * same effect than watching one attribute that already exists.
+   */
+  [data-active='true'] .hairline {
+    animation: hairline-sweep 0.9s var(--ease-out-expo) both;
+  }
+
+  @keyframes hairline-sweep {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0% 0;
+    }
+  }
+
+  /**
+   * Hero letter reveal. Each glyph is a span with an index in `--i`; the delay
+   * is what spreads the name out. The global reduced-motion rule zeroes the
+   * duration and the delay, so the name is simply there.
+   */
+  .hero-letter {
+    opacity: 0;
+    animation: hero-letter-in 0.55s var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 38ms);
+  }
+
+  /**
+   * Held until the loader sequence ends, so the name lands with the camera
+   * glide instead of animating behind a full-screen loader.
+   *
+   * `animation-play-state` rather than `animation: none`: pausing keeps the delay
+   * already computed, so the stagger still reads in order once it resumes, and it
+   * needs no JavaScript to add or remove the animation itself.
+   *
+   * Scoped to `no-preference` on purpose. Reduced motion already flattens this
+   * animation to a zero-duration reveal, and gating that on a JS-set attribute
+   * would risk leaving the h1 invisible if anything upstream ever failed to set
+   * it — a broken page for a cosmetic gain.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    html:not([data-revealed]) .hero-letter {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes hero-letter-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5em) rotateX(-55deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Retires within the first three percent of scroll, as specified. */
+  .hero-cue {
+    opacity: var(--hero-cue, 1);
+  }
+
+  .hero-cue-arrow {
+    animation: cue-bob 1.9s ease-in-out infinite;
+  }
+
+  @keyframes cue-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translateY(4px);
+      opacity: 1;
+    }
+  }
+
+  /* ========================================================================= */
+  /* MODE CHROME — loading and crash states, in the global sheet               */
+  /* ========================================================================= */
+  /*
+   * These render while a lazy chunk is in flight or after the 3D tree crashed,
+   * which means the 2D stylesheet (where `.btn` also exists) may not be loaded.
+   * Duplicating the half-dozen button rules here is deliberate: a loading
+   * indicator that inherits unstyled buttons is a loading indicator that looks
+   * broken, and the alternative — loading the 2D stylesheet to style the 3D
+   * loading state — defeats the split.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: var(--touch-target-min);
+    padding: 0.625rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-neon-teal);
+    outline-offset: 2px;
+  }
+  .btn-sm {
+    min-height: var(--touch-target-min);
+    padding: 0.5rem 0.875rem;
+    font-size: 0.6875rem;
+  }
+  .btn-primary {
+    background: var(--color-neon-teal);
+    color: var(--color-ink-950);
+  }
+  .btn-primary:hover {
+    background: color-mix(in oklab, var(--color-neon-teal) 90%, white);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-mist-300);
+    border: 1px solid color-mix(in oklab, var(--color-white) 15%, transparent);
+  }
+  .btn-ghost:hover {
+    border-color: var(--color-neon-violet);
+    color: var(--color-neon-violet);
+  }
+
+  .mode-switcher-loading,
+  .mode-crash {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 1rem;
+    padding: 2rem 1.5rem;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    text-align: center;
+    background: var(--color-ink-950);
+    color: var(--color-mist-200);
+  }
+  .mode-switcher-loading {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-mist-300);
+  }
+  .mode-crash-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    color: var(--color-mist-100);
+  }
+  .mode-crash-body {
+    margin: 0;
+    max-width: 36rem;
+    line-height: 1.7;
+  }
+  .mode-crash-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Hide the static SEO block once React has painted real content. */
+#root:not(:empty) ~ #seo-boot {
+  display: none;
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Hrithik Paul — Software Engineer | AI/LLM Engineer",
+  "short_name": "Hrithik Paul",
+  "description": "Portfolio of Hrithik Paul, Software Engineer and AI/LLM Engineer in West Bengal, India. LangGraph, MCP, agentic workflows, enterprise analytics, machine learning and published research in medical AI, explainable AI, computer vision, NLP and biometrics.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04050d",
+  "theme_color": "#04050d",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

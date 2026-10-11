@@ -1,0 +1,739 @@
+/**
+ * ============================================================================
+ * SITE 2D STYLES — PHASE 6
+ * ============================================================================
+ *
+ * Lightweight CSS for the 2D fallback. No three.js, no heavy animations.
+ * Matches the 3D visual identity: dusk gradient, glass cards, neon accents.
+ */
+
+@layer base {
+  .site-2d {
+    min-height: 100vh;
+    background: var(--color-ink-950);
+    color: var(--color-mist-100);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Gutter for the station cards. They are `max-width` boxes with no wrapper
+   * element of their own, so the horizontal padding has to come from `main` —
+   * and it has to be padding rather than margin so the card's own background
+   * and border stay edge-to-edge with the text inside it.
+   */
+  .site-2d main {
+    padding: 0 1rem;
+  }
+  @media (min-width: 640px) {
+    .site-2d main { padding: 0 1.5rem; }
+  }
+
+  /* Background gradient - dusk theme */
+  .site-2d::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-neon-teal) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, var(--color-neon-violet) 0%, transparent 60%),
+      linear-gradient(180deg, var(--color-ink-950) 0%, var(--color-ink-900) 50%, var(--color-ink-950) 100%);
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  /* ========================================================================= */
+  /* SKIP LINK                                                                  */
+  /* ========================================================================= */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.75rem 1.5rem;
+    background: var(--color-neon-teal);
+    color: var(--color-ink-950);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    z-index: 100;
+    transition: top 0.2s ease-out;
+  }
+  .skip-link:focus {
+    top: 1rem;
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-neon-teal);
+  }
+
+  /* ========================================================================= */
+  /* NAV 2D                                                                     */
+  /* ========================================================================= */
+  .nav-2d {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--color-ink-950) 90%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-neon-teal) 15%, transparent);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .nav-2d.scrolled {
+    box-shadow: 0 4px 24px -8px rgb(0 0 0 / 0.4);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-mist-100);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+  .logo svg { flex-shrink: 0; }
+  .logo-text { display: none; }
+  @media (min-width: 640px) { .logo-text { display: inline; } }
+
+  .nav-links { flex: 1; display: flex; justify-content: center; }
+
+  /*
+   * One panel, two presentations. The inline layout is the default and the
+   * off-canvas layout is an override at narrow widths, so there is a single set
+   * of links in the DOM at every breakpoint. `visibility` is toggled with the
+   * transform so the panel is neither focusable nor announced while closed —
+   * `transform` alone would leave it readable to a screen reader and tabbable,
+   * which is the usual way an off-canvas menu fails an accessibility audit.
+   */
+  .nav-panel { display: contents; }
+  .nav-list {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (max-width: 768px) {
+    .nav-panel {
+      display: block;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 280px;
+      max-width: 85vw;
+      padding: 5rem 1.5rem 2rem;
+      background: var(--color-ink-950);
+      border-left: 1px solid color-mix(in oklab, var(--color-neon-teal) 15%, transparent);
+      box-shadow: -24px 0 48px -12px rgb(0 0 0 / 0.5);
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform 0.3s ease-out, visibility 0.3s;
+      z-index: 60;
+      overflow-y: auto;
+      /* Room for the notch and the home indicator on a phone in portrait. */
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+      padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    }
+    .nav-panel.open { transform: translateX(0); visibility: visible; }
+    .nav-list { flex-direction: column; }
+    /*
+     * 44px minimum target height. The inline desktop layout keeps the tighter
+     * pill padding; a finger on a 30px-tall target is a miss, not a click.
+     */
+    .nav-list .nav-link {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+    }
+  }
+  .nav-link {
+    display: block;
+    padding: 0.5rem 0.875rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-mist-300);
+    background: transparent;
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .nav-link:hover { color: var(--color-mist-100); background: color-mix(in oklab, var(--color-neon-teal) 10%, transparent); }
+  .nav-link.active { color: var(--color-ink-950); background: var(--color-neon-teal); }
+  .nav-link:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 2px; }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .social-links { display: flex; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px floor: a 36px circle is under the WCAG 2.2 target-size minimum and
+       about a fingertip narrower than a comfortable tap. */
+    width: var(--touch-target-min);
+    height: var(--touch-target-min);
+    border-radius: 50%;
+    color: var(--color-mist-300);
+    background: color-mix(in oklab, var(--color-white) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 15%, transparent);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .social-link:hover { color: var(--color-neon-teal); border-color: var(--color-neon-teal); }
+  .social-link:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 2px; }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-target-min);
+    height: var(--touch-target-min);
+    border: none;
+    background: transparent;
+    color: var(--color-mist-100);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  @media (min-width: 769px) { .menu-toggle { display: none; } }
+  .menu-toggle:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 2px; }
+
+  .menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.6);
+    z-index: 55;
+  }
+  @media (max-width: 768px) {
+    .nav-2d.menu-open .menu-overlay { display: block; }
+  }
+
+  .mode-toggle { display: none; }
+  @media (min-width: 769px) { .mode-toggle { display: inline-flex; } }
+
+  /* ========================================================================= */
+  /* BUTTONS                                                                    */
+  /* ========================================================================= */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 2px; }
+  .btn-sm { padding: 0.5rem 0.875rem; font-size: 0.6875rem; }
+  .btn-primary {
+    background: var(--color-neon-teal);
+    color: var(--color-ink-950);
+  }
+  .btn-primary:hover { background: color-mix(in oklab, var(--color-neon-teal) 90%, white); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-mist-100);
+    border: 1px solid color-mix(in oklab, var(--color-neon-violet) 45%, transparent);
+  }
+  .btn-secondary:hover { border-color: var(--color-neon-violet); color: var(--color-neon-violet); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-mist-300);
+    border: 1px solid color-mix(in oklab, var(--color-white) 15%, transparent);
+  }
+  .btn-ghost:hover { border-color: var(--color-neon-violet); color: var(--color-neon-violet); }
+  .btn-text { display: none; }
+  @media (min-width: 480px) { .btn-text { display: inline; } }
+
+  /* ========================================================================= */
+  /* HERO                                                                       */
+  /* ========================================================================= */
+  .station-hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 1rem 4rem;
+  }
+  .hero-content {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-neon-teal);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--color-mist-100);
+    margin: 0.75rem 0 0.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out 0.1s, transform 0.6s ease-out 0.1s;
+  }
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 500;
+    color: var(--color-neon-teal);
+    margin: 0 0 1rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s;
+  }
+  .hero-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.7;
+    color: var(--color-mist-200);
+    max-width: 540px;
+    margin: 0 auto 2rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s;
+  }
+  .location { display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: var(--color-mist-300); }
+  .hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+  .scroll-hint {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-mist-400);
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+  /* ========================================================================= */
+  /* BIKE SILHOUETTE                                                           */
+  /* ========================================================================= */
+  .bike-silhouette {
+    position: fixed;
+    left: 50%;
+    width: 120px;
+    height: 60px;
+    margin-left: -60px;
+    pointer-events: none;
+    z-index: 5;
+    /* The bike travels along a curved path from top-left to bottom-right */
+    offset-path: path('M -100 10 C -50 50, 50 50, 100 10');
+    offset-distance: var(--bike-progress, 0%);
+    offset-rotate: 0deg;
+    transform: translateX(-50%);
+    color: var(--color-neon-teal);
+    opacity: 0.15;
+    filter: drop-shadow(0 0 8px var(--color-neon-teal));
+    transition: offset-distance 0.1s linear;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bike-silhouette { display: none; }
+  }
+
+  /* ========================================================================= */
+  /* STATION CARDS                                                              */
+  /* ========================================================================= */
+  .station {
+    padding: 5rem 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .station-card-2d {
+    position: relative;
+    max-width: 800px;
+    /* Vertical rhythm between cards. Horizontal padding is on the card body. */
+    margin: 0 auto 3rem;
+    /*
+     * Sections receive programmatic focus after nav jumps (`tabIndex={-1}`).
+     * A focus ring around an entire card would be alarming and meaningless —
+     * the ring belongs on controls — so it is suppressed here and only here.
+     */
+    outline: none;
+    background: color-mix(in oklab, var(--color-ink-950) 85%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 16%, transparent);
+    border-radius: 1rem;
+    backdrop-filter: blur(16px) saturate(120%);
+    box-shadow:
+      0 18px 50px -24px rgb(0 0 0 / 0.9),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+    overflow: hidden;
+  }
+  .station-card-2d::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-neon-teal) 55%, transparent), transparent);
+    pointer-events: none;
+  }
+  .station-card-inner { padding: 2rem 1.5rem; }
+  @media (min-width: 640px) { .station-card-inner { padding: 2.5rem 2rem; } }
+
+  .station-card-2d .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--color-neon-teal);
+    margin-bottom: 0.5rem;
+  }
+  .station-card-2d .heading {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-mist-100);
+    margin-bottom: 1rem;
+  }
+  .hairline {
+    height: 1px;
+    width: 5rem;
+    max-width: 80px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-neon-teal) 55%, transparent), transparent);
+    margin: 1rem 0;
+  }
+  .station-card-2d .body {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--color-mist-200);
+  }
+  .station-card-2d .body p { margin: 0 0 1rem; }
+  .station-card-2d .body p:last-child { margin-bottom: 0; }
+  .station-card-2d .body ul { margin: 1rem 0; padding-left: 1.5rem; }
+  .station-card-2d .body li { margin: 0.5rem 0; }
+  .station-card-2d[data-active='true'] {
+    border-color: color-mix(in oklab, var(--color-neon-teal) 45%, transparent);
+  }
+
+  /* ========================================================================= */
+  /* TYPOGRAPHY / SHARED CONTENT BLOCKS                                         */
+  /* ========================================================================= */
+  .body-text { margin: 0 0 1rem; max-width: 68ch; }
+  .body-text.muted { color: var(--color-mist-300); font-size: 0.9375rem; }
+  .subheading {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-mist-100);
+    margin: 1.75rem 0 0.5rem;
+  }
+  .meta {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--color-mist-400);
+  }
+  .meta + .meta::before { content: '· '; }
+
+  /* Visible to screen readers, painted nowhere. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: var(--color-neon-teal);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .link:hover { color: var(--color-white); }
+  .link:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 3px; }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 0.75rem 0;
+  }
+  .tag {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--color-neon-teal);
+    background: color-mix(in oklab, var(--color-neon-teal) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 28%, transparent);
+    border-radius: 9999px;
+  }
+
+  /* ========================================================================= */
+  /* SKILLS                                                                     */
+  /* ========================================================================= */
+  .skill-group { margin-top: 2rem; }
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0 0;
+  }
+  .skill-tile {
+    padding: 0.75rem 0.875rem;
+    background: color-mix(in oklab, var(--color-white) 4%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-white) 10%, transparent);
+    border-radius: 0.625rem;
+  }
+  .skill-tile dt {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-mist-100);
+  }
+  .skill-tile dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--color-mist-300);
+  }
+
+  /* ========================================================================= */
+  /* EXPERIENCE / PROJECTS / PUBLICATIONS / AWARDS                             */
+  /* ========================================================================= */
+  .role-card,
+  .project-card {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: color-mix(in oklab, var(--color-white) 4%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-white) 10%, transparent);
+    border-left: 2px solid var(--color-neon-violet);
+    border-radius: 0.75rem;
+  }
+  .role-card .subheading,
+  .project-card .subheading { margin-top: 0; }
+  .role-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.75rem; }
+  .role-company {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-neon-violet);
+  }
+  .plain-list { list-style: none; padding-left: 0; }
+  .plain-list > li { margin-top: 1rem; }
+  .plain-list strong { color: var(--color-mist-100); }
+  .highlight-list {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.9375rem;
+    color: var(--color-mist-300);
+  }
+  .highlight-list li { margin: 0.25rem 0; }
+
+  .publication-list {
+    margin: 1.25rem 0;
+    padding-left: 1.25rem;
+    font-size: 0.9375rem;
+  }
+  .publication { margin-bottom: 0.75rem; }
+  .pub-title { color: var(--color-mist-100); }
+  .publication .link { margin-top: 0.25rem; }
+
+  .ach-group { margin-top: 2rem; }
+  .ach-list { list-style: none; margin: 0.75rem 0 0; padding: 0; }
+  .ach-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-white) 8%, transparent);
+  }
+  .ach-item:last-child { border-bottom: none; }
+  .ach-title { display: block; font-weight: 600; color: var(--color-mist-100); }
+  .ach-item .meta { margin-top: 0.125rem; }
+  .contact-icon { display: inline-flex; }
+
+  /* ========================================================================= */
+  /* CONTACT SECTION                                                            */
+  /* ========================================================================= */
+  #station-contact .body { max-width: 540px; }
+  #station-contact .body > .btn-primary { margin: 0.5rem 0 1.25rem; }
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+  }
+  .contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-mist-100);
+    background: color-mix(in oklab, var(--color-white) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-white) 15%, transparent);
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .contact-link:hover { border-color: var(--color-neon-violet); color: var(--color-neon-violet); }
+  .contact-link:focus-visible { outline: 2px solid var(--color-neon-teal); outline-offset: 2px; }
+
+  /* ========================================================================= */
+  /* SCROLL PROGRESS                                                            */
+  /* ========================================================================= */
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: color-mix(in oklab, var(--color-white) 10%, transparent);
+    z-index: 40;
+    pointer-events: none;
+  }
+  .scroll-progress-fill {
+    height: 100%;
+    width: var(--progress, 0%);
+    background: linear-gradient(90deg, var(--color-neon-teal), var(--color-neon-violet));
+    transform-origin: left center;
+    transform: scaleX(1);
+  }
+  .scroll-progress-station {
+    position: absolute;
+    top: 0; bottom: 0; width: 2px;
+    background: var(--color-neon-teal);
+    opacity: 0.6;
+  }
+
+  /* ========================================================================= */
+  /* FOOTER                                                                     */
+  /* ========================================================================= */
+  .footer-2d {
+    padding: 4rem 1rem 2rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-neon-teal) 15%, transparent);
+    background: color-mix(in oklab, var(--color-ink-950) 95%, transparent);
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 768px) { .footer-inner { grid-template-columns: 1fr 1fr auto; align-items: start; } }
+
+  .footer-brand svg { color: var(--color-neon-teal); margin-bottom: 0.5rem; }
+  .footer-brand span { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
+  .tagline { color: var(--color-mist-300); font-size: 0.875rem; margin-top: 0.25rem; }
+
+  .footer-links { display: flex; flex-direction: column; gap: 1.5rem; }
+  @media (min-width: 768px) { .footer-links { flex-direction: row; justify-content: space-between; } }
+
+  .footer-links nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1.5rem; }
+  .footer-links nav a { color: var(--color-mist-300); text-decoration: none; font-size: 0.875rem; transition: color 0.15s ease; }
+  .footer-links nav a:hover { color: var(--color-neon-teal); }
+
+  .footer-links .social-links { display: flex; gap: 0.75rem; }
+  .footer-links .social-link {
+    display: flex; align-items: center; justify-content: center;
+    width: var(--touch-target-min); height: var(--touch-target-min);
+    border-radius: 50%;
+    color: var(--color-mist-300);
+    background: color-mix(in oklab, var(--color-white) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon-teal) 15%, transparent);
+    transition: all 0.15s ease;
+  }
+  .footer-links .social-link:hover { color: var(--color-neon-teal); border-color: var(--color-neon-teal); }
+
+  .footer-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; }
+  .mode-switch { min-width: 160px; }
+
+  .copyright {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-mist-400);
+    font-size: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-white) 10%, transparent);
+  }
+
+  /* ========================================================================= */
+  /* REDUCED MOTION                                                             */
+  /* ========================================================================= */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+    .bike-silhouette { display: none; }
+    .scroll-hint { animation: none; }
+  }
+
+  /* ========================================================================= */
+  /* FOCUS VISIBLE                                                              */
+  /* ========================================================================= */
+  :focus-visible {
+    outline: 2px solid var(--color-neon-teal);
+    outline-offset: 2px;
+  }
+
+  /* ========================================================================= */
+  /* REDUCED DATA / LOW END                                                     */
+  /* ========================================================================= */
+  @media (prefers-reduced-data: reduce) {
+    .bike-silhouette { display: none; }
+  }
+}
